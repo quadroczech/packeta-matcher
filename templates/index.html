@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packeta Matcher</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: #e30613;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 3px solid #4a6cf7;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .drop-zone {
+            border: 2px dashed #c5cfe8;
+            border-radius: 10px;
+            padding: 36px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafbff;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #4a6cf7;
+            background: #f0f4ff;
+        }
+
+        .drop-zone .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .drop-zone small {
+            color: #999;
+            font-size: 12px;
+        }
+
+        #file-input { display: none; }
+
+        .file-selected {
+            background: #e8f5e9;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #2e7d32;
+            display: none;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #e30613;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover:not(:disabled) { background: #c0000f; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .progress {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .progress-pct {
+            font-size: 12px;
+            font-weight: 700;
+            color: #4a6cf7;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a6cf7, #7b9cff);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-step {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .error-msg {
+            display: none;
+            background: #fff0f0;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #c62828;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .stats {
+            display: none;
+            margin-top: 16px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #a5d6b7;
+        }
+
+        .stats-banner {
+            background: #2e7d32;
+            color: white;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .stats-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-check {
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .stats-banner-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .stats-banner-sub {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 1px;
+        }
+
+        .btn-redownload {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+
+        .btn-redownload:hover { background: rgba(255,255,255,0.3); }
+
+        .stats-body {
+            background: #f0faf4;
+            padding: 14px 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: white;
+            border-radius: 6px;
+            padding: 10px 4px;
+            border: 1px solid #e0f0e8;
+        }
+
+        .stat-num {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .stat-total .stat-num { color: #1565c0; }
+        .stat-found .stat-num { color: #2e7d32; }
+        .stat-missing .stat-num { color: #e65100; }
+
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <div class="logo-icon">📦</div>
+            <div>
+                <h1>Packeta Matcher</h1>
+                <div class="subtitle">Automatické přiřazení čísel objednávek</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            Nahrajte Excel soubor se zásilkami. Aplikace automaticky najde sloupec s trasovacími čísly
+            (formát <strong>Z + číslice</strong>) a doplní čísla objednávek z Zásilkovna API.
+        </div>
+
+        <div class="drop-zone" id="drop-zone">
+            <div class="icon">📂</div>
+            <p>Přetáhněte soubor sem nebo klikněte pro výběr</p>
+            <small>Podporovaný formát: .xlsx</small>
+        </div>
+
+        <input type="file" id="file-input" accept=".xlsx,.xls">
+
+        <div class="file-selected" id="file-selected">
+            <span>📄</span>
+            <span id="file-name"></span>
+        </div>
+
+        <button class="btn" id="submit-btn" disabled>Zpracovat a stáhnout</button>
+
+        <div class="progress" id="progress">
+            <div class="progress-header">
+                <span class="progress-label">Zpracování…</span>
+                <span class="progress-pct" id="progress-pct">0 %</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="progress-step" id="progress-step">Nahrávám soubor…</div>
+        </div>
+
+        <div class="error-msg" id="error-msg"></div>
+
+        <div class="stats" id="stats">
+            <div class="stats-banner">
+                <div class="stats-banner-left">
+                    <div class="stats-check">✓</div>
+                    <div>
+                        <div class="stats-banner-title">Zpracování dokončeno</div>
+                        <div class="stats-banner-sub" id="stats-sub">Soubor byl stažen</div>
+                    </div>
+                </div>
+                <button class="btn-redownload" id="btn-redownload">⬇ Stáhnout znovu</button>
+            </div>
+            <div class="stats-body">
+                <div class="stats-grid">
+                    <div class="stat-box stat-total">
+                        <div class="stat-num" id="stat-total">—</div>
+                        <div class="stat-label">Celkem zásilek</div>
+                    </div>
+                    <div class="stat-box stat-found">
+                        <div class="stat-num" id="stat-found">—</div>
+                        <div class="stat-label">Nalezeno</div>
+                    </div>
+                    <div class="stat-box stat-missing">
+                        <div class="stat-num" id="stat-missing">—</div>
+                        <div class="stat-label">Nenalezeno</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const fileSelected = document.getElementById('file-selected');
+        const fileName = document.getElementById('file-name');
+        const progressBox = document.getElementById('progress');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPct = document.getElementById('progress-pct');
+        const progressStep = document.getElementById('progress-step');
+        const errorMsg = document.getElementById('error-msg');
+        const statsBox = document.getElementById('stats');
+
+        let selectedFile = null;
+        let lastBlobUrl = null;
+        let lastDlName = null;
+        let progressTimer = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) setFile(file);
+        });
+        fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+        function setFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSelected.style.display = 'flex';
+            submitBtn.disabled = false;
+            errorMsg.style.display = 'none';
+            statsBox.style.display = 'none';
+        }
+
+        // Simulovaný progress: rychle do 15 %, pak pomalu do 85 %, skok na 100 % po dokončení
+        function startProgress() {
+            setProgress(0, 'Nahrávám soubor…');
+            progressBox.style.display = 'block';
+            let pct = 0;
+            progressTimer = setInterval(() => {
+                if (pct < 15) pct += 3;
+                else if (pct < 50) pct += 0.8;
+                else if (pct < 85) pct += 0.3;
+                setProgress(Math.min(pct, 85), pct < 15 ? 'Nahrávám soubor…' : 'Dotazuji Zásilkovna API…');
+            }, 200);
+        }
+
+        function setProgress(pct, label) {
+            progressFill.style.width = pct + '%';
+            progressPct.textContent = Math.round(pct) + ' %';
+            if (label) progressStep.textContent = label;
+        }
+
+        function finishProgress(cb) {
+            clearInterval(progressTimer);
+            setProgress(100, 'Hotovo!');
+            setTimeout(() => {
+                progressBox.style.display = 'none';
+                setProgress(0, '');
+                cb();
+            }, 500);
+        }
+
+        function triggerDownload(blobUrl, dlName) {
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = dlName;
+            a.click();
+        }
+
+        document.getElementById('btn-redownload').addEventListener('click', () => {
+            if (lastBlobUrl) triggerDownload(lastBlobUrl, lastDlName);
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            submitBtn.disabled = true;
+            errorMsg.style.display = 'none';
+            statsBox.style.display = 'none';
+            startProgress();
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/process', { method: 'POST', body: formData });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Neznámá chyba');
+                }
+
+                const total    = response.headers.get('X-Stats-Total');
+                const found    = response.headers.get('X-Stats-Found');
+                const notFound = response.headers.get('X-Stats-NotFound');
+
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition');
+                const nameMatch = disposition && disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                lastDlName = nameMatch ? nameMatch[1].replace(/['"]/g, '') : 'vysledek_objednavky.xlsx';
+                if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+                lastBlobUrl = URL.createObjectURL(blob);
+                triggerDownload(lastBlobUrl, lastDlName);
+
+                finishProgress(() => {
+                    document.getElementById('stat-total').textContent = total ?? '—';
+                    document.getElementById('stat-found').textContent = found ?? '—';
+                    document.getElementById('stat-missing').textContent = notFound ?? '—';
+
+                    document.getElementById('stats-sub').textContent = 'Soubor byl stažen do složky Stažené soubory';
+
+                    statsBox.style.display = 'block';
+                });
+
+            } catch (err) {
+                clearInterval(progressTimer);
+                progressBox.style.display = 'none';
+                errorMsg.textContent = 'Chyba: ' + err.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
