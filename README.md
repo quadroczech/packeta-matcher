@@ -6,8 +6,8 @@ Webová aplikace pro automatické přiřazení čísel objednávek k zásilkám 
 
 ## Jak to funguje
 
-1. **Nahrajte Excel soubor** – exportovaný ze Zásilkovny (obsahuje sloupec s trasovacími čísly ve formátu `Z + číslice`, např. `Z1234567890`, a sloupec `Customs Value (CHF)`).
-2. **Aplikace automaticky detekuje** sloupec s trasovacími čísly – není potřeba nic nastavovat.
+1. **Nahrajte Excel soubor** – exportovaný ze Zásilkovny nebo od dopravce (obsahuje sloupec s trasovacími čísly ve formátu `Z + číslice` (např. `Z1234567890`) nebo jen číslice (např. `4170246843`), a sloupec `Customs Value (CHF)`).
+2. **Aplikace automaticky detekuje** sloupec s trasovacími čísly – hledá podle záhlaví ("Tracking Number") nebo podle formátu dat. Podporuje čísla s prefixem Z i bez něj.
 3. **Zásilkovna SOAP API** je dotázáno paralelně pro všechna trasovací čísla (10 vláken současně), aby zpracování bylo co nejrychlejší.
 4. **Výsledný Excel** dostanete ke stažení – obsahuje dva nové sloupce hned za trasovacími čísly:
    - **Číslo objednávky** – doplněno z API; pokud není nalezeno, zobrazí se `—`.
