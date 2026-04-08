@@ -10,7 +10,7 @@ MAX_WORKERS = 10  # počet paralelních vláken pro API volání
 
 ORDER_COLUMN_HEADER = "Číslo objednávky"
 PRICE_COLUMN_HEADER = "Celková cena CHF"
-TRACKING_PATTERN = re.compile(r'^[Zz]\d{6,}$')
+TRACKING_PATTERN = re.compile(r'^[Zz]?\d{6,15}$')
 
 VAT_RATE = 0.081             # DPH 8,1 %
 SHIPPING_IN_CUSTOMS = 9.0    # Zásilkovna vždy deklaruje 9 CHF dopravy v Customs Value (bez DPH)
@@ -41,19 +41,30 @@ def _calculate_total_price(customs_value: float | None) -> float | None:
 CUSTOMS_VALUE_HEADER = "Customs Value (CHF)"
 
 
+TRACKING_HEADER_NAMES = {"tracking number", "tracking no", "trasovací číslo"}
+
+
 def _find_tracking_column(sheet) -> tuple[int, int]:
     """
-    Prohledá buňky a najde sloupec obsahující trasovací čísla (formát Z + číslice).
-    Vrátí (index_sloupce, index_řádku_s_prvním_nálezem).
-    Vyvolá ValueError pokud sloupec není nalezen.
+    Najde sloupec s trasovacími čísly. Nejdřív hledá podle záhlaví,
+    pak fallback na regex pattern v datech.
+    Vrátí (index_sloupce, index_prvního_datového_řádku).
     """
+    # 1) Hledání podle záhlaví
+    for row in sheet.iter_rows(max_row=5):
+        for cell in row:
+            if cell.value and str(cell.value).strip().lower() in TRACKING_HEADER_NAMES:
+                return cell.column, cell.row + 1
+
+    # 2) Fallback: hledání podle patternu v datech
     for row in sheet.iter_rows():
         for cell in row:
             if cell.value and TRACKING_PATTERN.match(str(cell.value).strip()):
                 return cell.column, cell.row
     raise ValueError(
         "Nepodařilo se najít sloupec s trasovacími čísly. "
-        "Trasovací čísla musí být ve formátu Z + číslice (např. Z1234567890)."
+        "Trasovací čísla musí být ve formátu Z + číslice (např. Z1234567890) "
+        "nebo jen číslice (např. 1234567890)."
     )
 
 
